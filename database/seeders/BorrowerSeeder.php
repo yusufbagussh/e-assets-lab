@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class BorrowerSeeder extends Seeder
 {
@@ -20,7 +21,9 @@ class BorrowerSeeder extends Seeder
             'peminjam_jurusan' => 1,
             'peminjam_email' => 'rizkialfian@gmail.com',
             'peminjam_no_wa' => 89670198915,
-            'peminjam_status' => 'Mahasiswa Aktif'
+            'peminjam_status' => 'Mahasiswa Aktif',
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
         DB::table('borrowers')->insert([
             'peminjam_no_identitas' => 1967896567899,
@@ -28,7 +31,9 @@ class BorrowerSeeder extends Seeder
             'peminjam_jurusan' => 2,
             'peminjam_email' => 'sakapangestu@gmail.com',
             'peminjam_no_wa' => 89670198915,
-            'peminjam_status' => 'Mahasiswa Aktif'
+            'peminjam_status' => 'Mahasiswa Aktif',
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
     }
 }

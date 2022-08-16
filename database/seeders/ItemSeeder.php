@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 
 class ItemSeeder extends Seeder
@@ -22,7 +23,9 @@ class ItemSeeder extends Seeder
             'item_gambar' => 'mikrotik.jpg',
             'item_kondisi' => 'Kondisi barang dalam keadaan bagus',
             'item_status' => 'Tersedia',
-            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa'
+            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa',
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
         DB::table('items')->insert([
             'item_lokasi' => 2,
@@ -31,7 +34,9 @@ class ItemSeeder extends Seeder
             'item_gambar' => 'router.jpg',
             'item_kondisi' => 'Kondisi barang dalam keadaan bagus',
             'item_status' => 'Tersedia',
-            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa'
+            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa',
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
         DB::table('items')->insert([
             'item_lokasi' => 3,
@@ -40,7 +45,9 @@ class ItemSeeder extends Seeder
             'item_gambar' => 'switch.jpg',
             'item_kondisi' => 'Kondisi barang dalam keadaan bagus',
             'item_status' => 'Tersedia',
-            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa'
+            'item_spesifikasi' => 'Mempunyai 6 colokan port, melaju dengan kecepatan luar biasa',
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
     }
 }

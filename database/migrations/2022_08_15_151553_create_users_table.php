@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('user_email');
             $table->string('password');
             $table->unsignedBigInteger('user_role');
+            $table->softDeletes();
             $table->timestamps();
         });
 

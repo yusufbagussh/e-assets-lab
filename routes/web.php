@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::resource('locations', App\Http\Controllers\API\LocationController::class);
+Route::resource('api/roles', App\Http\Controllers\RoleController::class);
+Route::resource('api/majors', App\Http\Controllers\MajorController::class);
+Route::resource('api/users', App\Http\Controllers\UserController::class);
