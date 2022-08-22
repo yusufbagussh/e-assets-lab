@@ -18,10 +18,10 @@ return new class extends Migration
             $table->unsignedBigInteger('item_lokasi');
             $table->string('item_nama');
             $table->unsignedBigInteger('item_jumlah');
-            $table->string('item_gambar');
+            $table->string('item_gambar')->nullable();
             $table->string('item_kondisi');
+            $table->text('item_spesifikasi')->nullable();
             $table->string('item_status');
-            $table->text('item_spesifikasi');
             $table->timestamps();
         });
 

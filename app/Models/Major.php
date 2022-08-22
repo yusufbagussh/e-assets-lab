@@ -16,4 +16,9 @@ class Major extends Model
     {
         return 'jurusan_id';
     }
+
+    public function Borrowers()
+    {
+        $this->hasMany(Borrowers::class, 'peminjam_jurusan', 'jurusan_id');
+    }
 }

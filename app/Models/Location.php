@@ -17,4 +17,9 @@ class Location extends Model
     {
         return 'lokasi_id';
     }
+
+    public function items()
+    {
+        return $this->hasMany(Item::class, 'item_lokasi', 'lokasi_id');
+    }
 }

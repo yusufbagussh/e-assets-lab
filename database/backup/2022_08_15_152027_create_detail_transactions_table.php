@@ -14,15 +14,16 @@ return new class extends Migration
     public function up()
     {
         Schema::create('detail_transactions', function (Blueprint $table) {
-            $table->unsignedBigInteger('detail_transaksi_id');
-            $table->unsignedBigInteger('detail_transaksi_user');
+            $table->integer('detail_transaksi_id');
+            $table->integer('detail_transaksi_transaksi');
+            $table->integer('detail_transaksi_user');
             $table->date('detail_transaksi_tgl_pengembalian');
-            $table->unsignedBigInteger('detail_transaksi_denda');
+            $table->integer('detail_transaksi_denda');
             $table->timestamps();
         });
 
         Schema::table('detail_transactions', function (Blueprint $table) {
-            $table->foreign('detail_transaksi_id')->references('transaksi_id')->on('transactions');
+            $table->foreign('detail_transaksi_transaksi')->references('transaksi_id')->on('transactions');
         });
 
         Schema::table('detail_transactions', function (Blueprint $table) {

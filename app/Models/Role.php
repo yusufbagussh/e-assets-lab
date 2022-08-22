@@ -13,6 +13,11 @@ class Role extends Model
 
     protected $primaryKey = 'role_id';
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'user_role', 'role_id');
+    }
+
     public function getRouteKeyName()
     {
         return 'role_id';
