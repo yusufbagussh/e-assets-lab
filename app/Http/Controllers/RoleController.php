@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Role;
-use App\Helpers\ApiFormatter;
 use Exception;
+use App\Models\Role;
+use Illuminate\Http\Request;
+use App\Helpers\ApiFormatter;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
 {
@@ -44,24 +45,30 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'role_nama' => 'required',
-            ]);
+        $message = [
+            'role_nama.required' => 'nama role wajib diisi',
+        ];
 
-            $role = Role::create([
-                'role_nama' => $request->role_nama,
-            ]);
+        $validator = Validator::make(
+            $request->all(),
+            ['role_nama' => 'required',],
+            $message
+        );
 
-            $data = Role::where('role_id', '=', $role->role_id)->get();
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
-            return ApiFormatter::createApi(400, 'Failed', $error);
+        $role = Role::create([
+            'role_nama' => $request->role_nama,
+        ]);
+
+        $data = Role::where('role_id', '=', $role->role_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Role Created', $data);
+        } else {
+            return ApiFormatter::createApi(400, 'Failed');
         }
     }
 
@@ -102,25 +109,31 @@ class RoleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'role_nama' => 'required',
-            ]);
+        $message = [
+            'role_nama.required' => 'nama role wajib diisi',
+        ];
 
-            $role = Role::findOrFail($id);
+        $validator = Validator::make(
+            $request->all(),
+            ['role_nama' => 'required',],
+            $message
+        );
 
-            $role->update([
-                'role_nama' => $request->role_nama,
-            ]);
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            $data = Role::where('role_id', '=', $role->role_id)->get();
+        $role = Role::findOrFail($id);
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
+        $role->update([
+            'role_nama' => $request->role_nama,
+        ]);
+
+        $data = Role::where('role_id', '=', $role->role_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
             return ApiFormatter::createApi(400, 'Failed');
         }
     }

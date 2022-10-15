@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ApiFormatter;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class LocationController extends Controller
 {
@@ -16,14 +17,41 @@ class LocationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Location::all();
+        // $data = Location::all();
+        $search = $request->search;
+        $paginate = $request->paginate;
+        $sort = $request->sortBy;
+        $type = $request->sortOrder;
 
-        if ($data) {
-            return ApiFormatter::createApi(200, 'Success', $data);
+        $data = Location::query();
+
+        if ($search) {
+            $data->where('lokasi_nama', 'LIKE', '%' . $search . '%');
+        }
+
+        if ($sort && in_array($sort, ['lokasi_nama', 'lokasi_id'])) {
+            $sortBy = $sort;
         } else {
-            return ApiFormatter::createApi(400, 'Failed');
+            $sortBy = 'lokasi_id';
+        }
+
+        if ($type && in_array($type, ['ASC', 'DESC'])) {
+            $sortOrder = $type;
+        } else {
+            $sortOrder = 'DESC';
+        }
+
+        $data->orderBy($sortBy, $sortOrder);
+
+        if ($paginate == 'all') {
+            $jml = count($data->get()->toArray());
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($jml));
+        } else if ($paginate != 'all') {
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($paginate));
+        } else {
+            return ApiFormatter::createApi(200, 'Success', $data->paginate(10));
         }
     }
 
@@ -45,28 +73,28 @@ class LocationController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'lokasi_nama' => 'required',
-                // 'lokasi_gambar' => 'required|image|file'
-            ]);
+        $message = [
+            'lokasi_nama.required' => 'nama lokasi wajib diisi',
+        ];
 
-            // $lokasi['lokasi_gambar'] = $request->file('lokasi_gambar')->store('location-image');
+        $validator = Validator::make($request->all(), [
+            'lokasi_nama' => 'required',
+        ], $message);
 
-            $location = Location::create([
-                'lokasi_nama' => $request->lokasi_nama,
-                // 'lokasi_gambar' => $lokasi['lokasi_gambar'],
-            ]);
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            $data = Location::where('lokasi_id', '=', $location->lokasi_id)->get();
+        $location = Location::create([
+            'lokasi_nama' => $request->lokasi_nama,
+        ]);
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
-            return ApiFormatter::createApi(400, 'Failed', $error);
+        $data = Location::where('lokasi_id', '=', $location->lokasi_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
+            return ApiFormatter::createApi(400, 'Failed');
         }
     }
 
@@ -107,43 +135,29 @@ class LocationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'lokasi_nama' => 'required',
-                // 'lokasi_gambar' => 'required',
-            ]);
+        $message = [
+            'lokasi_nama.required' => 'nama lokasi wajib diisi',
+        ];
 
-            // if ($request->file('lokasi_gambar')) {
-            //     if ($request->gambarLama) {
-            //         Storage::delete($request->gambarLama);
-            //     }
-            //     $validatedData['lokasi_gambar'] = $request->file('lokasi_gambar')->store('location-image');
-            // }
-            
-            $input = $request->all();
-            
-            $location = Location::findOrFail($id);
+        $validator = Validator::make($request->all(), [
+            'lokasi_nama' => 'required',
+        ], $message);
 
-            // $imageName = NULL;
-            // if ($image = $request->file('lokasi_gambar')) {
-            //     $destinationPath = 'location-image/';
-            //     $imageName = date('YmdHis') . "." . $image->getClientOriginalExtension();
-            //     $image->move($destinationPath, $imageName);
-            //     $input['image'] = $imageName;
-            //     unlink('location-image/' . $location->image);
-            // }
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
+
+        $location = Location::findOrFail($id);
+
+        $location->update([
+            'lokasi_nama' => $request->lokasi_nama,
+        ]);
 
 
-            $location->update($input);
-
-            $data = Location::where('lokasi_id', '=', $location->lokasi_id)->get();
-
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
+        $data = Location::where('lokasi_id', '=', $location->lokasi_id)->get();
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
             return ApiFormatter::createApi(400, 'Failed');
         }
     }

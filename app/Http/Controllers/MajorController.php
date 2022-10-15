@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Major;
-use App\Helpers\ApiFormatter;
 use Exception;
+use App\Models\Major;
+use Illuminate\Http\Request;
+use App\Helpers\ApiFormatter;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class MajorController extends Controller
 {
@@ -15,15 +16,50 @@ class MajorController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Major::all();
+        // $data = Major::all();
 
-        if ($data) {
-            return ApiFormatter::createApi(200, 'Success', $data);
-        } else {
-            return ApiFormatter::createApi(400, 'Failed');
+        $search = $request->search;
+        $paginate = $request->paginate;
+        $sort = $request->sortBy;
+        $type = $request->sortOrder;
+
+        $data = Major::query();
+
+        if ($search) {
+            $data->where('jurusan_nama', 'LIKE', '%' . $search . '%')
+                ->orWhere('jurusan_fakultas', 'LIKE', '%' . $search . '%');
         }
+
+        if ($sort && in_array($sort, ['jurusan_nama', 'jurusan_fakultas'])) {
+            $sortBy = $sort;
+        } else {
+            $sortBy = 'jurusan_id';
+        }
+
+        if ($type && in_array($type, ['ASC', 'DESC'])) {
+            $sortOrder = $type;
+        } else {
+            $sortOrder = 'DESC';
+        }
+
+        $data->orderBy($sortBy, $sortOrder);
+
+        if ($paginate == 'all') {
+            $jml = count($data->get()->toArray());
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($jml));
+        } else if ($paginate) {
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($paginate));
+        } else {
+            return ApiFormatter::createApi(200, 'Success', $data->paginate(10));
+        }
+
+        // if ($data) {
+        //     return ApiFormatter::createApi(200, 'Success', $data);
+        // } else {
+        //     return ApiFormatter::createApi(400, 'Failed');
+        // }
     }
 
     /**
@@ -44,26 +80,31 @@ class MajorController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'jurusan_nama' => 'required',
-                'jurusan_fakultas' => 'required',
-            ]);
+        $message = [
+            'jurusan_nama.required' => 'nama jurusan wajib diisi',
+            'jurusan_fakultas.required' => 'nama fakultas wajib diisi',
+        ];
 
-            $major = Major::create([
-                'jurusan_nama' => $request->jurusan_nama,
-                'jurusan_fakultas' => $request->jurusan_fakultas,
-            ]);
+        $validator = Validator::make($request->all(), [
+            'jurusan_nama' => 'required',
+            'jurusan_fakultas' => 'required'
+        ], $message);
 
-            $data = Major::where('jurusan_id', '=', $major->jurusan_id)->get();
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
-            return ApiFormatter::createApi(400, 'Failed', $error);
+        $major = Major::create([
+            'jurusan_nama' => $request->jurusan_nama,
+            'jurusan_fakultas' => $request->jurusan_fakultas,
+        ]);
+
+        $data = Major::where('jurusan_id', '=', $major->jurusan_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
+            return ApiFormatter::createApi(400, 'Failed');
         }
     }
 
@@ -104,27 +145,32 @@ class MajorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'jurusan_nama' => 'required',
-                'jurusan_fakultas' => 'required',
-            ]);
+        $message = [
+            'jurusan_nama.required' => 'nama jurusan wajib diisi',
+            'jurusan_fakultas.required' => 'nama fakultas wajib diisi',
+        ];
 
-            $major = Major::findOrFail($id);
+        $validator = Validator::make($request->all(), [
+            'jurusan_nama' => 'required',
+            'jurusan_fakultas' => 'required'
+        ], $message);
 
-            $major->update([
-                'jurusan_nama' => $request->jurusan_nama,
-                'jurusan_fakultas' => $request->jurusan_fakultas,
-            ]);
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            $data = Major::where('jurusan_id', '=', $major->jurusan_id)->get();
+        $major = Major::findOrFail($id);
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
+        $major->update([
+            'jurusan_nama' => $request->jurusan_nama,
+            'jurusan_fakultas' => $request->jurusan_fakultas,
+        ]);
+
+        $data = Major::where('jurusan_id', '=', $major->jurusan_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
             return ApiFormatter::createApi(400, 'Failed');
         }
     }

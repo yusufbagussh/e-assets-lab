@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
@@ -16,24 +17,38 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::resource('api/location', App\Http\Controllers\LocationController::class);
-Route::resource('api/role', App\Http\Controllers\RoleController::class);
-Route::resource('api/user', App\Http\Controllers\UserController::class);
-Route::resource('api/item', App\Http\Controllers\ItemController::class);
-Route::resource('api/borrower', App\Http\Controllers\BorrowerController::class);
-Route::resource('api/transaction', App\Http\Controllers\TransactionController::class);
-Route::resource('api/dashboard', App\Http\Controllers\DashboardController::class);
-Route::resource('api/detailtransaction', App\Http\Controllers\DetailTransactionController::class);
-Route::resource('api/major', App\Http\Controllers\MajorController::class);
+// `Route::resource('api/location', App\Http\Controllers\LocationController::class);
+// Route::resource('api/role', App\Http\Controllers\RoleController::class);
+// // Route::resource('api/user', App\Http\Controllers\UserController::class);
+// // Route::resource('api/item', App\Http\Controllers\ItemController::class);
+// Route::resource('api/borrower', App\Http\Controllers\BorrowerController::class);
+// Route::resource('api/transaction', App\Http\Controllers\TransactionController::class);
+// Route::resource('api/dashboard', App\Http\Controllers\DashboardController::class);
+// Route::resource('api/detailtransaction', App\Http\Controllers\DetailTransactionController::class);
+// Route::resource('api/major', App\Http\Controllers\MajorController::class);
 
-Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'register']);
-//API route for login user
-Route::post('/login', [App\Http\Controllers\API\AuthController::class, 'login']);
+// Route::get('api/export', [App\Http\Controllers\TransactionController::class, 'export']);
 
-Route::get('/login', [App\Http\Controllers\API\AuthController::class, 'index']);
+// Route::post('api/updateitem/{id}', [App\Http\Controllers\ItemController::class, 'updateItem']);
 
-//Protecting Routes
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    // API route for logout user
-    Route::post('/logout', [App\Http\Controllers\API\AuthController::class, 'logout']);
-});
+// Route::post('api/register', [App\Http\Controllers\AuthController::class, 'register']);
+
+// Route::post('api/logout', [App\Http\Controllers\AuthController::class, 'logout']);
+
+// Route::post('api/login', [App\Http\Controllers\AuthController::class, 'login']);
+
+// //Protecting Routes
+// Route::group(['middleware' => ['auth:sanctum']], function () {
+//     // Route::resource('api/dashboard', App\Http\Controllers\DashboardController::class);
+//     // Route::resource('api/item', App\Http\Controllers\ItemController::class);
+//     Route::resource('api/user', App\Http\Controllers\UserController::class);
+//     Route::resource('api/item', App\Http\Controllers\ItemController::class);
+// });
+
+// // Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
+// //     return $request->user();
+// // });
+
+// Route::middleware('auth:sanctum')->get('api/authenticated', function () {
+//     return true;
+// });`

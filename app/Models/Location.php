@@ -9,7 +9,7 @@ class Location extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['lokasi_id'];
+    protected $guarded = [];
 
     protected $primaryKey = 'lokasi_id';
 

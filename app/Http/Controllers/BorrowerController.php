@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Borrower;
-use App\Helpers\ApiFormatter;
 use Exception;
+use App\Models\Major;
+use App\Models\Borrower;
+use Illuminate\Http\Request;
+use App\Helpers\ApiFormatter;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class BorrowerController extends Controller
 {
@@ -15,14 +17,60 @@ class BorrowerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Borrower::with('major')->get();
+        $search = $request->search;
+        $paginate = $request->paginate;
+        $sort = $request->sortBy;
+        $type = $request->sortOrder;
 
-        if ($data) {
-            return ApiFormatter::createApi(200, 'Success', $data);
+        $data = Borrower::query();
+
+        $data->with('major');
+
+        if ($search) {
+            $data->whereHas('major', function ($value) use ($search) {
+                $value->where('peminjam_nama', 'LIKE', "%" . $search . "%")
+                    ->orWhere('jurusan_nama', 'LIKE', "%" . $search . "%")
+                    ->orWhere('peminjam_status', 'LIKE', "%" . $search . "%");
+            });
+        }
+
+        if ($sort && in_array($sort, ['peminjam_nama', 'jurusan_nama', 'peminjam_status'])) {
+            $sortBy = $sort;
         } else {
-            return ApiFormatter::createApi(400, 'Failed');
+            $sortBy = 'peminjam_id';
+        }
+
+        if ($type && in_array($type, ['ASC', 'DESC'])) {
+            $sortOrder = $type;
+        } else {
+            $sortOrder = 'DESC';
+        }
+
+        if ($sort == 'jurusan_nama') {
+            $data->orderBy(
+                Major::select('jurusan_nama')
+                    ->whereColumn('jurusan_id', 'borrowers.peminjam_jurusan'),
+                $sortOrder
+            );
+        } else {
+            $data->orderBy($sortBy, $sortOrder);
+        }
+
+        // if ($paginate) {
+        //     return $data->paginate($paginate);
+        // } else {
+        //     return $data->paginate(10);
+        // }
+
+        if ($paginate == 'all') {
+            $jml = count($data->get()->toArray());
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($jml));
+        } else if ($paginate) {
+            return ApiFormatter::createApi(200, 'Success',  $data->paginate($paginate));
+        } else {
+            return ApiFormatter::createApi(200, 'Success', $data->paginate(10));
         }
     }
 
@@ -44,34 +92,43 @@ class BorrowerController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'peminjam_no_identitas' => 'required',
-                'peminjam_nama' => 'required',
-                'peminjam_jurusan' => 'required',
-                'peminjam_email' => 'required',
-                'peminjam_no_wa' => 'required',
-                'peminjam_status' => 'required',
-            ]);
+        $message = [
+            'peminjam_no_identitas.required' => 'nomer identitas peminjam wajib diisi',
+            'peminjam_nama.required' => 'nama peminjam wajib diisi',
+            'peminjam_jurusan.required' => 'jurusan peminjam wajib diisi',
+            'peminjam_email.required' => 'email peminjam wajib diisi',
+            'peminjam_no_wa.required' => 'nomer WA peminjam wajib diisi',
+            'peminjam_status.required' => 'status peminjam wajib diisi',
+        ];
 
-            $borrower = Borrower::create([
-                'peminjam_no_identitas' => $request->peminjam_no_identitas,
-                'peminjam_nama' => $request->peminjam_nama,
-                'peminjam_jurusan' => $request->peminjam_jurusan,
-                'peminjam_email' => $request->peminjam_email,
-                'peminjam_no_wa' => $request->peminjam_no_wa,
-                'peminjam_status' => $request->peminjam_status,
-            ]);
+        $validator = Validator::make($request->all(), [
+            'peminjam_no_identitas' => 'required',
+            'peminjam_nama' => 'required',
+            'peminjam_jurusan' => 'required',
+            'peminjam_email' => 'required',
+            'peminjam_no_wa' => 'required',
+            'peminjam_status' => 'required',
+        ], $message);
 
-            $data = Borrower::where('peminjam_id', '=', $borrower->peminjam_id)->get();
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
-            return ApiFormatter::createApi(400, 'Failed', $error);
+        $borrower = Borrower::create([
+            'peminjam_no_identitas' => $request->peminjam_no_identitas,
+            'peminjam_nama' => $request->peminjam_nama,
+            'peminjam_jurusan' => $request->peminjam_jurusan,
+            'peminjam_email' => $request->peminjam_email,
+            'peminjam_no_wa' => '0' . $request->peminjam_no_wa,
+            'peminjam_status' => $request->peminjam_status,
+        ]);
+
+        $data = Borrower::where('peminjam_id', '=', $borrower->peminjam_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
+            return ApiFormatter::createApi(400, 'Failed');
         }
     }
 
@@ -112,35 +169,50 @@ class BorrowerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'peminjam_no_identitas' => 'required',
-                'peminjam_nama' => 'required',
-                'peminjam_jurusan' => 'required',
-                'peminjam_email' => 'required',
-                'peminjam_no_wa' => 'required',
-                'peminjam_status' => 'required',
-            ]);
+        $message = [
+            'peminjam_no_identitas.required' => 'nomer identitas peminjam wajib diisi',
+            'peminjam_nama.required' => 'nama peminjam wajib diisi',
+            'peminjam_jurusan.required' => 'jurusan peminjam wajib diisi',
+            'peminjam_email.required' => 'email peminjam wajib diisi',
+            'peminjam_no_wa.required' => 'nomer WA peminjam wajib diisi',
+            'peminjam_status.required' => 'status peminjam wajib diisi',
+        ];
 
-            $borrower = Borrower::findOrFail($id);
+        $validator = Validator::make($request->all(), [
+            'peminjam_no_identitas' => 'required',
+            'peminjam_nama' => 'required',
+            'peminjam_jurusan' => 'required',
+            'peminjam_email' => 'required',
+            'peminjam_no_wa' => 'required',
+            'peminjam_status' => 'required',
+        ], $message);
 
-            $borrower->update([
-                'peminjam_no_identitas' => $request->peminjam_no_identitas,
-                'peminjam_nama' => $request->peminjam_nama,
-                'peminjam_jurusan' => $request->peminjam_jurusan,
-                'peminjam_email' => $request->peminjam_email,
-                'peminjam_no_wa' => $request->peminjam_no_wa,
-                'peminjam_status' => $request->peminjam_status,
-            ]);
+        if ($validator->fails()) {
+            return ApiFormatter::createApi(422, $validator->errors());
+        }
 
-            $data = Borrower::where('peminjam_id', '=', $borrower->peminjam_id)->get();
+        $borrower = Borrower::findOrFail($id);
 
-            if ($data) {
-                return ApiFormatter::createApi(200, 'Success', $data);
-            } else {
-                return ApiFormatter::createApi(400, 'Failed');
-            }
-        } catch (Exception $error) {
+        if ($request->peminjam_no_wa == $borrower->peminjam_no_wa) {
+            $no_wa = $borrower->peminjam_no_wa;
+        } else {
+            $no_wa = '0' . $request->peminjam_no_wa;
+        }
+
+        $borrower->update([
+            'peminjam_no_identitas' => $request->peminjam_no_identitas,
+            'peminjam_nama' => $request->peminjam_nama,
+            'peminjam_jurusan' => $request->peminjam_jurusan,
+            'peminjam_email' => $request->peminjam_email,
+            'peminjam_no_wa' => $no_wa,
+            'peminjam_status' => $request->peminjam_status,
+        ]);
+
+        $data = Borrower::where('peminjam_id', '=', $borrower->peminjam_id)->get();
+
+        if ($data) {
+            return ApiFormatter::createApi(201, 'Success', $data);
+        } else {
             return ApiFormatter::createApi(400, 'Failed');
         }
     }
