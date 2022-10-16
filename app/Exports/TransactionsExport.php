@@ -41,7 +41,9 @@ class TransactionsExport implements
         return [
             $transaction->transaksi_id,
             $transaction->item->item_nama,
+            $transaction->item->item_id,
             $transaction->borrower->peminjam_nama,
+            $transaction->borrower->peminjam_no_identitas,
             $transaction->transaksi_jumlah,
             $transaction->transaksi_tgl_pinjam,
             $transaction->transaksi_lama_pinjam,
@@ -60,7 +62,9 @@ class TransactionsExport implements
         return [
             'TRANSAKSI ID',
             'ITEM',
+            'ID ITEM',
             'PEMINJAM',
+            'ID PEMINJAMAN',
             'JUMLAH',
             'TGL PEMINJAMAN',
             'LAMA PEMINJAMAN',

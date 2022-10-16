@@ -76,7 +76,7 @@ class TransactionController extends Controller
                 });
         }
 
-        if ($sort && in_array($sort, ['item_nama', 'peminjam_nama', 'transaksi_status', 'transaksi_tgl_pinjam', 'transaksi_lama_pinjam', 'transaksi_jumlah'])) {
+        if ($sort && in_array($sort, ['item_nama', 'peminjam_nama', 'transaksi_status', 'transaksi_tgl_pinjam', 'transaksi_tgl_kembali', 'transaksi_jumlah'])) {
             $sortBy = $sort;
         } else {
             $sortBy = 'transaksi_id';
@@ -277,7 +277,7 @@ class TransactionController extends Controller
         $jml_hari = count($listDay);
         $status_transaksi = $request->transaksi_status;
         // if ($jml_hari > $lama_hari_pinjam) {
-        if ($status_transaksi == 'Terlambat') {
+        if ($status_transaksi == 'Terlambat' && $jml_hari > $lama_hari_pinjam) {
             // $status_transaksi = 'Terlambat';
             $hari_lebih = $jml_hari - $lama_hari_pinjam;
             $denda = $hari_lebih * 10000;
